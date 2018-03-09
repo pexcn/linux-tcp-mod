@@ -410,9 +410,7 @@ static void bictcp_state(struct sock *sk, u8 new_state)
 
 static void hystart_update(struct sock *sk, u32 delay)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)
 	struct tcp_sock *tp = tcp_sk(sk);
-#endif
 	struct bictcp *ca = inet_csk_ca(sk);
 
 	if (ca->found & hystart_detect)
@@ -432,8 +430,8 @@ static void hystart_update(struct sock *sk, u32 delay)
 				NET_ADD_STATS(sock_net(sk),
 						 LINUX_MIB_TCPHYSTARTTRAINCWND,
 						 tp->snd_cwnd);
-				tp->snd_ssthresh = tp->snd_cwnd;
 #endif
+				tp->snd_ssthresh = tp->snd_cwnd;
 			}
 		}
 	}
@@ -455,8 +453,8 @@ static void hystart_update(struct sock *sk, u32 delay)
 				NET_ADD_STATS(sock_net(sk),
 						 LINUX_MIB_TCPHYSTARTDELAYCWND,
 						 tp->snd_cwnd);
-				tp->snd_ssthresh = tp->snd_cwnd;
 #endif
+				tp->snd_ssthresh = tp->snd_cwnd;
 			}
 		}
 	}
