@@ -29,8 +29,8 @@
 #include <linux/module.h>       /* Needed by all modules */
 #include <linux/kernel.h>       /* Needed for KERN_INFO */
 #include <linux/init.h>
-#include <linux/version.h>
 #include <net/tcp.h>
+#include <linux/version.h>
 
 #define BICTCP_BETA_SCALE    1024	/* Scale factor beta calculation
 					 * max_cwnd = snd_cwnd * beta
@@ -465,10 +465,13 @@ static void hystart_update(struct sock *sk, u32 delay)
  */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0)
 static void bictcp_acked(struct sock *sk, u32 cnt, s32 rtt_us)
+{
 #else
 static void bictcp_acked(struct sock *sk, const struct ack_sample *sample)
-#endif
 {
+	// u32 cnt = sample->pkts_acked;
+	s32 rtt_us = sample->rtt_us;
+#endif
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct bictcp *ca = inet_csk_ca(sk);
 	u32 delay;
@@ -504,22 +507,14 @@ static void bictcp_acked(struct sock *sk, const struct ack_sample *sample)
 	}
 
 	/* Some calls are for duplicates without timetamps */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0)
 	if (rtt_us < 0)
-#else
-	if (sample->rtt_us < 0)
-#endif
 		return;
 
 	/* Discard delay samples right after fast recovery */
 	if (ca->epoch_start && (s32)(tcp_time_stamp - ca->epoch_start) < HZ)
 		return;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0)
 	delay = (rtt_us << 3) / USEC_PER_MSEC;
-#else
-	delay = (sample->rtt_us << 3) / USEC_PER_MSEC;
-#endif
 	if (delay == 0)
 		delay = 1;
 
