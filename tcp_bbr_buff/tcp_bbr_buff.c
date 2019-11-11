@@ -408,7 +408,7 @@ static void bbr_set_cwnd(struct sock *sk, const struct rate_sample *rs,
 done:
 	tp->snd_cwnd = min(cwnd, tp->snd_cwnd_clamp);	/* apply global cap */
 	if (bbr->mode == BBR_PROBE_RTT)  /* drain queue, refresh min_rtt */
-		tp->snd_cwnd = max(tp->snd_cwnd >> 1, bbr_cwnd_min_target);
+		tp->snd_cwnd = min(tp->snd_cwnd, bbr_cwnd_min_target);
 }
 
 /* End cycle phase if it's time and/or we hit the phase's in-flight target. */
@@ -763,7 +763,7 @@ static void bbr_update_min_rtt(struct sock *sk, const struct rate_sample *rs)
 		if (!bbr->probe_rtt_done_stamp &&
 		    tcp_packets_in_flight(tp) <= bbr_cwnd_min_target) {
 			bbr->probe_rtt_done_stamp = tcp_time_stamp +
-				msecs_to_jiffies(bbr_probe_rtt_mode_ms >> 1);
+				msecs_to_jiffies(bbr_probe_rtt_mode_ms);
 			bbr->probe_rtt_round_done = 0;
 			bbr->next_rtt_delivered = tp->delivered;
 		} else if (bbr->probe_rtt_done_stamp) {
